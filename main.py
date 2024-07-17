@@ -242,6 +242,33 @@ def add_filename(filename: str):
 		file.close()
 		file = open(filename, 'a')
 
+def delete_subtitle(filename: str, id: str):
+	if not os.path.exists(filename) or os.path.isdir(filename):
+		logs.error('You should enter a valid filename')
+		return
+
+	lines = []
+	with open(filename, 'r') as f_in:
+		i = 1
+		was_found = False
+		found = False
+		for line in f_in:
+			if i % 4 == 1 and line[:-1] == id:
+				was_found = True
+				found = True
+			if not found:
+				lines.append(line)
+			if i % 4 == 0:
+				found = False
+			i += 1
+	if not was_found:
+		logs.error(f'Id {id} not found')
+		return
+
+	with open(filename, 'w') as f_out:
+		for line in lines:
+			f_out.write(line)
+
 logs.clear()
 
 while True:
@@ -252,5 +279,11 @@ while True:
 			add_filename(s.split(' ')[-1])
 		else:
 			logs.error('add usage: add [filename]')
+	if s[:6] == 'delete':
+		args = s.split(' ')
+		if len(args) != 3:
+			logs.error('delete usage: delete [filename] [id]')
+			continue
+		delete_subtitle(args[1], args[2])
 	if s != '' and s in ['quit', 'exit', 'q']:
 		break
