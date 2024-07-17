@@ -17,7 +17,7 @@ def help(path: str = ""):
 		print('    otla [filename]')
 		print('    clear')
 		print('    help')
-		print('    quit|exit|q|Q')
+		print('    quit|exit|q')
 	elif path == "timestamp_or_duration":
 		print('duration in seconds and/or microseconds SS,MMM')
 		print('example: 755,215 for 755 seconds and 215 microseconds')

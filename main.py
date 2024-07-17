@@ -18,7 +18,7 @@ class Subtitle:
 				f'{self.text}\n\n'
 				)
 
-def get_input(message, help_type: str = "", disable_checker: bool = False):
+def get_input(message, help_type: str = "", lower = False, disable_checker: bool = False):
 	s = str(input(message))
 
 	s = s.strip()
@@ -30,7 +30,8 @@ def get_input(message, help_type: str = "", disable_checker: bool = False):
 		if s == 'clear':
 			logs.clear()
 			skip = True
-
+	if lower:
+		s = s.lower()
 	return s, skip
 
 def get_pre_sub(subtitles: list, id: int = -1) -> Subtitle:
@@ -210,7 +211,7 @@ def add_filename(filename: str):
 	file = open(filename, 'a')
 	while True:
 		# Get timestamps of new subtitle
-		s, skip = get_input("Enter timestamps or duration ? ([0|t|T]/[1|d|D]/[q|Q]) : ", 'timestamp_or_duration')
+		s, skip = get_input("Enter timestamps or duration ? ([0|t]/[1|d]/[q]) : ", 'timestamp_or_duration', lower=True)
 		if skip: continue
 		if s in '0tT1dD':
 			if s in '0tT':
@@ -218,7 +219,7 @@ def add_filename(filename: str):
 			elif s in '1dD':
 				timestamps = get_timestamps_duration(subtitles)
 			timestamps = get_timestamps_based_partial(subtitles, timestamps)
-		elif s in 'qQ':
+		elif s.lower() in ['q', 'quit', 'exit']:
 			file.close()
 			return
 		else:
@@ -244,12 +245,12 @@ def add_filename(filename: str):
 logs.clear()
 
 while True:
-	s, skip = get_input('srt_helper$ ')
+	s, skip = get_input('srt_helper$ ', lower=True)
 	if skip: continue
 	if s[:3] == 'add':
 		if len(s.split(' ')) > 1:
 			add_filename(s.split(' ')[-1])
 		else:
 			logs.error('add usage: add [filename]')
-	if s != '' and s in ['quit', 'exit', 'q', 'Q']:
+	if s != '' and s in ['quit', 'exit', 'q']:
 		break
