@@ -17,6 +17,7 @@ def help(path: str = ""):
 	if path == "":
 		print('Command list: ')
 		print('    add [filename]')
+		print('    add_copy [filename] [other_filename]')
 		print('    delete [filename] [id1,id2,id3...]')
 		print('    delete_time [filename] [timestamp1] [optionnal timestamp2]')
 		print('    clear')
@@ -51,7 +52,8 @@ def successfully_deleted(amount):
 def successfully_added(subtitle):
 	print(f'\n{str(subtitle)}{GREEN}Successfully added !{RESET}\n')
 
-
+def successfully_added(filename, filename_copy, subtitles_amount):
+	print(f'\n{GREEN}Successfully copy {filename} {subtitles_amount} subtitles with new ones in {filename_copy} !{RESET}\n')
 
 def clear():
 	lines = os.get_terminal_size().lines

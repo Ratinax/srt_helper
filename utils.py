@@ -3,6 +3,7 @@ import os
 from times import get_time
 import logs
 import readline
+from typing import List
 
 def get_pre_sub(subtitles: list, id: int = -1) -> Subtitle:
 	sub = None
@@ -20,7 +21,7 @@ def get_pre_sub(subtitles: list, id: int = -1) -> Subtitle:
 				break
 	return sub
 
-def load_subtitiles(filename: str):
+def load_subtitiles(filename: str) -> List[Subtitle]:
 	subtitles = []
 	if not os.path.exists(filename):
 		return subtitles
