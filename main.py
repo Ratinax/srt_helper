@@ -20,7 +20,7 @@ while True:
 			add_filename(args[1])
 		else:
 			logs.error('add usage: add [filename]')
-	if args[0] == 'add_copy':
+	elif args[0] == 'add_copy':
 		if len(args) == 3:
 			add_filename_copy(args[1], args[2])
 		else:
