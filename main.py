@@ -6,7 +6,7 @@ from typing import Tuple
 from times import *
 
 class Subtitle:
-	def __init__(self, id: int, timestamps: Tuple[time, time], text: str) -> None:
+	def __init__(self, id: int = 0, timestamps: Tuple[time, time] = [], text: str = '') -> None:
 		self.id = id
 		self.timestamps = timestamps
 		self.text = text
@@ -140,7 +140,7 @@ def get_timestamps_timestamps(subtitles: list, id: int = -1):
 
 	return timestamps.copy()
 
-def get_timestamp_based_partial(partial_timestamp: time, timestamp: time):
+def get_timestamp_based_partial(partial_timestamp: time, timestamp: time, is_second_timestamp = False):
 	tmp_timestamp = timestamp
 
 	if partial_timestamp.microsecond:
@@ -152,7 +152,8 @@ def get_timestamp_based_partial(partial_timestamp: time, timestamp: time):
 	if partial_timestamp.hour:
 		tmp_timestamp = tmp_timestamp.replace(hour= partial_timestamp.hour)
 
-	if tmp_timestamp <= timestamp:
+	if is_second_timestamp and tmp_timestamp <= timestamp \
+		or not is_second_timestamp and tmp_timestamp < timestamp:
 		if partial_timestamp.hour:
 			tmp_timestamp = tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
 		elif partial_timestamp.minute:
@@ -169,17 +170,44 @@ def get_timestamps_based_partial(subtitles: list, timestamps: Tuple[time, time],
 	timestamp = get_pre_sub_timestamp(subtitles, id)
 
 	new_timestamps.append(get_timestamp_based_partial(timestamps[0], timestamp))
-	new_timestamps.append(get_timestamp_based_partial(timestamps[1], timestamps[0]))
+	timestamps[0] = new_timestamps[0]
+	new_timestamps.append(get_timestamp_based_partial(timestamps[1], timestamps[0], True))
 
 	return new_timestamps.copy()
+
+def load_subtitiles(filename: str):
+	subtitles = []
+	if not os.path.exists(filename):
+		return subtitles
+	file = open(filename, 'r')
+	i = 1
+	subtitle = Subtitle()
+	for line in file:
+		line = line[:-1]
+		# Id line
+		if i % 4 == 1:
+			subtitle.id = int(line)
+		# timestamps line
+		elif i % 4 == 2:
+			subtitle.timestamps = [get_time(time_string) for time_string in line.split(' --> ')]
+		# Text line
+		elif i % 4 == 3:
+			subtitle.text = line
+		# Empty line
+		elif i % 4 == 0:
+			subtitles.append(subtitle)
+			subtitle = Subtitle()
+		i += 1
+	file.close()
+	return subtitles
 
 def add_filename(filename: str):
 	if os.path.exists(filename) and os.path.isdir(filename):
 		logs.error('You should not enter a directory as filename')
 		return
 
+	subtitles = load_subtitiles(filename)
 	file = open(filename, 'a')
-	subtitles = []
 	while True:
 		# Get timestamps of new subtitle
 		s, skip = get_input("Enter timestamps or duration ? ([0|t|T]/[1|d|D]/[q|Q]) : ", 'timestamp_or_duration')
