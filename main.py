@@ -311,9 +311,11 @@ while True:
 		delete_subtitle(args[1], args[2].split(','))
 	elif args[0] == 'delete_time':
 		args = s.split(' ')
-		if len(args) != 4:
-			logs.error('delete_time usage: delete [filename] [timestamp1] [timestamp2]')
+		if len(args) not in [3, 4]:
+			logs.error('delete_time usage: delete_time [filename] [timestamp1] [optionnal timestamp2]')
 			continue
+		if len(args) == 3:
+			args.append('999999999:999999999:999999999,000')
 		ids_to_remove = get_timestamp_ids(args[1], args[2], args[3])
 		delete_subtitle(args[1], ids_to_remove)
 	elif s != '' and args[0] in ['quit', 'exit', 'q']:

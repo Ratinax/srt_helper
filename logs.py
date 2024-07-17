@@ -18,6 +18,7 @@ def help(path: str = ""):
 		print('Command list: ')
 		print('    add [filename]')
 		print('    delete [filename] [id1,id2,id3...]')
+		print('    delete_time [filename] [timestamp1] [optionnal timestamp2]')
 		print('    clear')
 		print('    help')
 		print('    quit|exit|q')
