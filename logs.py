@@ -16,6 +16,8 @@ def help(path: str = ""):
 		print('    modify [filename]')
 		print('    otla [filename]')
 		print('    clear')
+		print('    help')
+		print('    quit|exit|q|Q')
 	elif path == "timestamp_or_duration":
 		print('duration in seconds and/or microseconds SS,MMM')
 		print('example: 755,215 for 755 seconds and 215 microseconds')

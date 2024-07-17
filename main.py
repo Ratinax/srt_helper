@@ -251,5 +251,5 @@ while True:
 			add_filename(s.split(' ')[-1])
 		else:
 			logs.error('add usage: add [filename]')
-	if s in 'qQ':
+	if s != '' and s in ['quit', 'exit', 'q', 'Q']:
 		break
