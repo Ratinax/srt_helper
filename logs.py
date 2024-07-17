@@ -3,17 +3,21 @@ import os
 
 RED = "\033[31m"
 GREEN = "\033[32m"
+PURLE = "\033[35m"
 RESET = "\033[0m"
 
 def error(*args, **kwargs):
 	print(f'{RED}Error:{RESET}', *args, **kwargs)
+
+def warning(*args, **kwargs):
+	print(f'{PURLE}Warning:{RESET}', *args, **kwargs)
 
 def help(path: str = ""):
 	print()
 	if path == "":
 		print('Command list: ')
 		print('    add [filename]')
-		print('    delete [filename] [id]')
+		print('    delete [filename] [id1,id2,id3...]')
 		print('    clear')
 		print('    help')
 		print('    quit|exit|q')

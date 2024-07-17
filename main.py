@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timedelta, time
 from typing import Tuple
 from times import *
+import readline
 
 class Subtitle:
 	def __init__(self, id: int = 0, timestamps: Tuple[time, time] = [], text: str = '') -> None:
@@ -242,28 +243,32 @@ def add_filename(filename: str):
 		file.close()
 		file = open(filename, 'a')
 
-def delete_subtitle(filename: str, id: str):
+def delete_subtitle(filename: str, ids: str | list):
 	if not os.path.exists(filename) or os.path.isdir(filename):
 		logs.error('You should enter a valid filename')
 		return
-
 	lines = []
+	ids_found = []
 	with open(filename, 'r') as f_in:
 		i = 1
-		was_found = False
 		found = False
 		for line in f_in:
-			if i % 4 == 1 and line[:-1] == id:
-				was_found = True
+			if i % 4 == 1 and line[:-1] in ids:
+				ids_found.append(line[:-1])
 				found = True
 			if not found:
 				lines.append(line)
 			if i % 4 == 0:
 				found = False
 			i += 1
-	if not was_found:
-		logs.error(f'Id {id} not found')
-		return
+			
+	ids_not_found = []
+	for id in ids:
+		if id not in ids_found:
+			ids_not_found.append(id)
+
+	if len(ids_not_found) > 0:
+		logs.warning(f'Ids {ids_not_found} not found')
 
 	with open(filename, 'w') as f_out:
 		for line in lines:
@@ -274,16 +279,26 @@ logs.clear()
 while True:
 	s, skip = get_input('srt_helper$ ', lower=True)
 	if skip: continue
-	if s[:3] == 'add':
+	elif s[:3] == 'add':
 		if len(s.split(' ')) > 1:
 			add_filename(s.split(' ')[-1])
 		else:
 			logs.error('add usage: add [filename]')
-	if s[:6] == 'delete':
+	elif s[:6] == 'delete':
+		args = s.split(' ')
+		if len(args) != 3:
+			logs.error('delete usage: delete [filename] [id]')
+			continue
+		delete_subtitle(args[1], args[2].split(','))
+	elif s[:6] == 'delete_time':
 		args = s.split(' ')
 		if len(args) != 3:
 			logs.error('delete usage: delete [filename] [id]')
 			continue
 		delete_subtitle(args[1], args[2])
-	if s != '' and s in ['quit', 'exit', 'q']:
+	elif s != '' and s in ['quit', 'exit', 'q']:
 		break
+	elif s == '':
+		continue
+	else:
+		logs.error(f'{s.split(' ')[0]}: command not found')
