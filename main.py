@@ -144,23 +144,23 @@ def get_timestamp_based_partial(partial_timestamp: time, timestamp: time):
 	tmp_timestamp = timestamp
 
 	if partial_timestamp.microsecond:
-		tmp_timestamp.replace(microsecond = partial_timestamp.microsecond)
+		tmp_timestamp = tmp_timestamp.replace(microsecond = partial_timestamp.microsecond)
 	if partial_timestamp.second:
-		tmp_timestamp.replace(second = partial_timestamp.second)
+		tmp_timestamp = tmp_timestamp.replace(second = partial_timestamp.second)
 	if partial_timestamp.minute:
-		tmp_timestamp.replace(minute= partial_timestamp.minute)
+		tmp_timestamp = tmp_timestamp.replace(minute = partial_timestamp.minute)
 	if partial_timestamp.hour:
-		tmp_timestamp.replace(hour= partial_timestamp.hour)
+		tmp_timestamp = tmp_timestamp.replace(hour= partial_timestamp.hour)
 
 	if tmp_timestamp <= timestamp:
 		if partial_timestamp.hour:
-			tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
+			tmp_timestamp = tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
 		elif partial_timestamp.minute:
-			tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
+			tmp_timestamp = tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
 		elif partial_timestamp.second:
-			tmp_timestamp.replace(minute=tmp_timestamp.minute + 1)
+			tmp_timestamp = tmp_timestamp.replace(minute=tmp_timestamp.minute + 1)
 		elif partial_timestamp.microsecond:
-			tmp_timestamp.replace(second=tmp_timestamp.second + 1)
+			tmp_timestamp = tmp_timestamp.replace(second=tmp_timestamp.second + 1)
 
 	return tmp_timestamp
 
@@ -170,6 +170,7 @@ def get_timestamps_based_partial(subtitles: list, timestamps: Tuple[time, time],
 
 	new_timestamps.append(get_timestamp_based_partial(timestamps[0], timestamp))
 	new_timestamps.append(get_timestamp_based_partial(timestamps[1], timestamps[0]))
+
 	return new_timestamps.copy()
 
 def add_filename(filename: str):
@@ -183,15 +184,15 @@ def add_filename(filename: str):
 		# Get timestamps of new subtitle
 		s, skip = get_input("Enter timestamps or duration ? ([0|t|T]/[1|d|D]/[q|Q]) : ", 'timestamp_or_duration')
 		if skip: continue
-		if s in 'qQ':
-			file.close()
-			return
 		if s in '0tT1dD':
 			if s in '0tT':
 				timestamps = get_timestamps_timestamps(subtitles)
 			elif s in '1dD':
 				timestamps = get_timestamps_duration(subtitles)
 			timestamps = get_timestamps_based_partial(subtitles, timestamps)
+		elif s in 'qQ':
+			file.close()
+			return
 		else:
 			logs.error('should enter one of the following chars : 0tT1dD')
 
@@ -205,6 +206,8 @@ def add_filename(filename: str):
 		subtitle = Subtitle(id, timestamps, text)
 		subtitles.append(subtitle)
 		file.write(str(subtitle))
+
+		logs.successfully_added(subtitle)
 
 		# Update file in real time for user
 		file.close()

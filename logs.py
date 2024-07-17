@@ -2,6 +2,7 @@ import sys
 import os
 
 RED = "\033[31m"
+GREEN = "\033[32m"
 RESET = "\033[0m"
 
 def error(*args, **kwargs):
@@ -37,6 +38,10 @@ def help(path: str = ""):
 		print('    5:10 for the next timestamp possible with 5 minutes and 10 seconds')
 		print('you may also just hit Enter if it\'s the first to be entered, it would automatically put a good timestamp')
 	print()
+
+def successfully_added(subtitle):
+	print(f'\n{str(subtitle)}{GREEN}Successfully added !{RESET}\n')
+
 
 
 def clear():
