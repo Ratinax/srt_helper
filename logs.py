@@ -13,8 +13,6 @@ def help(path: str = ""):
 	if path == "":
 		print('Command list: ')
 		print('    add [filename]')
-		print('    modify [filename]')
-		print('    otla [filename]')
 		print('    clear')
 		print('    help')
 		print('    quit|exit|q')
