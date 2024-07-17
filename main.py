@@ -1,14 +1,22 @@
 import sys
 import logs
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import Tuple
+from times import *
 
 class Subtitle:
-	def __init__(self, id: int, timestamps: Tuple[datetime, datetime], text: str) -> None:
+	def __init__(self, id: int, timestamps: Tuple[time, time], text: str) -> None:
 		self.id = id
 		self.timestamps = timestamps
 		self.text = text
+	def __str__(self):
+		return (f'{self.id}\n'
+				f'{self.timestamps[0].strftime('%H:%M:%S,%f')[:-3]}'
+				f' --> '
+				f'{self.timestamps[1].strftime('%H:%M:%S,%f')[:-3]}\n'
+				f'{self.text}\n\n'
+				)
 
 def get_input(message, help_type: str = "", disable_checker: bool = False):
 	s = str(input(message))
@@ -41,8 +49,22 @@ def get_pre_sub(subtitles: list, id: int = -1) -> Subtitle:
 				break
 	return sub
 
+def get_max_id(subtitles: list):
+	sub = get_pre_sub(subtitles)
+
+	if sub is None:
+		return 0
+	return sub.id + 1
+
+def get_pre_sub_timestamp(subtitles: list, id: int = -1):
+	sub = get_pre_sub(subtitles, id)
+
+	if sub is None:
+		return time()
+	return sub.timestamps[1]
+
 def to_good_timestamp_format(timestamp: str):
-	# add milliseconds
+	# add microseconds
 	sp = timestamp.split(',')
 	if len(sp) == 1:
 		timestamp = timestamp + ',0'
@@ -78,10 +100,8 @@ def get_timestamps_duration(subtitles: list, id: int = -1):
 		except:
 			s = None
 			logs.error('wrong duration format, enter help for more infos')
-	sub = get_pre_sub(subtitles, id)
-	if sub is None:
-		return timedelta(0), timedelta(seconds=duration)
-	return sub.timestamps[1], sub.timestamps[1] + timedelta(seconds=duration)
+	timestamp = get_pre_sub_timestamp(subtitles, id)
+	return timestamp, add_time(timestamp, timedelta(seconds=duration))
 
 def get_timestamps_timestamps(subtitles: list, id: int = -1):
 	timestamps = []
@@ -93,17 +113,12 @@ def get_timestamps_timestamps(subtitles: list, id: int = -1):
 			s = None
 			continue
 		if s == '':
-			sub = get_pre_sub(subtitles, id)
-			if sub is None:
-				timestamp = timedelta(seconds=0)
-			else:
-				timestamp = sub.timestamps[1]
-
+			timestamp = get_pre_sub_timestamp(subtitles, id)
 			timestamps.append(timestamp)
 		else:
 			try:
 				s = to_good_timestamp_format(s)
-				time_obj = datetime.strptime(s, '%H:%M:%S,%f')
+				time_obj = get_time(s)
 				timestamps.append(time_obj)
 			except:
 				s = None
@@ -116,7 +131,8 @@ def get_timestamps_timestamps(subtitles: list, id: int = -1):
 			s = None
 			continue
 		try:
-			time_obj = datetime.strptime(s, '%H:%M:%S,%f')
+			s = to_good_timestamp_format(s)
+			time_obj = get_time(s)
 			timestamps.append(time_obj)
 		except:
 			s = None
@@ -124,15 +140,37 @@ def get_timestamps_timestamps(subtitles: list, id: int = -1):
 
 	return timestamps.copy()
 
-def get_timestamp_based_partial(partial_timestamp: datetime, timestamp: datetime):
+def get_timestamp_based_partial(partial_timestamp: time, timestamp: time):
+	tmp_timestamp = timestamp
 
+	if partial_timestamp.microsecond:
+		tmp_timestamp.replace(microsecond = partial_timestamp.microsecond)
+	if partial_timestamp.second:
+		tmp_timestamp.replace(second = partial_timestamp.second)
+	if partial_timestamp.minute:
+		tmp_timestamp.replace(minute= partial_timestamp.minute)
+	if partial_timestamp.hour:
+		tmp_timestamp.replace(hour= partial_timestamp.hour)
 
-def get_timestamps_based_partial(subtitles: list, timestamps: Tuple[datetime, datetime], id: int = -1):
+	if tmp_timestamp <= timestamp:
+		if partial_timestamp.hour:
+			tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
+		elif partial_timestamp.minute:
+			tmp_timestamp.replace(hour=tmp_timestamp.hour + 1)
+		elif partial_timestamp.second:
+			tmp_timestamp.replace(minute=tmp_timestamp.minute + 1)
+		elif partial_timestamp.microsecond:
+			tmp_timestamp.replace(second=tmp_timestamp.second + 1)
+
+	return tmp_timestamp
+
+def get_timestamps_based_partial(subtitles: list, timestamps: Tuple[time, time], id: int = -1):
 	new_timestamps = []
-	sub = get_pre_sub(id)
-	new_timestamps.append(get_timestamp_based_partial(timestamps[0], sub.timestamps[1]))
-	new_timestamps.append(get_timestamp_based_partial(timestamps[1], timestamps[0]))
+	timestamp = get_pre_sub_timestamp(subtitles, id)
 
+	new_timestamps.append(get_timestamp_based_partial(timestamps[0], timestamp))
+	new_timestamps.append(get_timestamp_based_partial(timestamps[1], timestamps[0]))
+	return new_timestamps.copy()
 
 def add_filename(filename: str):
 	if os.path.exists(filename) and os.path.isdir(filename):
@@ -142,8 +180,12 @@ def add_filename(filename: str):
 	file = open(filename, 'a')
 	subtitles = []
 	while True:
-		s, skip = get_input("Enter timestamps or duration ? ([0|t|T]/[1|d|D]) : ", 'timestamp_or_duration')
+		# Get timestamps of new subtitle
+		s, skip = get_input("Enter timestamps or duration ? ([0|t|T]/[1|d|D]/[q|Q]) : ", 'timestamp_or_duration')
 		if skip: continue
+		if s in 'qQ':
+			file.close()
+			return
 		if s in '0tT1dD':
 			if s in '0tT':
 				timestamps = get_timestamps_timestamps(subtitles)
@@ -153,6 +195,20 @@ def add_filename(filename: str):
 		else:
 			logs.error('should enter one of the following chars : 0tT1dD')
 
+		# Get text of new subtitle
+		s, skip = get_input("Enter text : ", disable_checker=True)
+		text = s
+
+		# Get id of new subtitle
+		id = get_max_id(subtitles)
+
+		subtitle = Subtitle(id, timestamps, text)
+		subtitles.append(subtitle)
+		file.write(str(subtitle))
+
+		# Update file in real time for user
+		file.close()
+		file = open(filename, 'a')
 
 logs.clear()
 
@@ -164,3 +220,5 @@ while True:
 			add_filename(s.split(' ')[-1])
 		else:
 			logs.error('add usage: add [filename]')
+	if s in 'qQ':
+		break
