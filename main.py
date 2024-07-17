@@ -261,7 +261,7 @@ def delete_subtitle(filename: str, ids: str | list):
 			if i % 4 == 0:
 				found = False
 			i += 1
-			
+
 	ids_not_found = []
 	for id in ids:
 		if id not in ids_found:
@@ -270,33 +270,53 @@ def delete_subtitle(filename: str, ids: str | list):
 	if len(ids_not_found) > 0:
 		logs.warning(f'Ids {ids_not_found} not found')
 
+	logs.successfully_deleted(len(ids_found))
+
 	with open(filename, 'w') as f_out:
 		for line in lines:
 			f_out.write(line)
+
+def get_timestamp_ids(filename: str, timestamp1: str, timestamp2: str):
+	timestamp1 = to_good_timestamp_format(timestamp1)
+	timestamp2 = to_good_timestamp_format(timestamp2)
+	timestamp_start = get_time(timestamp1)
+	timestamp_end = get_time(timestamp2)
+
+	subtitles: list[Subtitle] = load_subtitiles(filename)
+	ids = []
+	for subtitle in subtitles:
+		if subtitle.timestamps[0] >= timestamp_start \
+			and subtitle.timestamps[0] <= timestamp_end \
+			and subtitle.timestamps[1] >= timestamp_start \
+			and subtitle.timestamps[1] <= timestamp_end:
+			ids.append(str(subtitle.id))
+	return ids
+
 
 logs.clear()
 
 while True:
 	s, skip = get_input('srt_helper$ ', lower=True)
 	if skip: continue
-	elif s[:3] == 'add':
-		if len(s.split(' ')) > 1:
-			add_filename(s.split(' ')[-1])
+	args = s.split(' ')
+	if args[0] == 'add':
+		if len(args) > 1:
+			add_filename(args[-1])
 		else:
 			logs.error('add usage: add [filename]')
-	elif s[:6] == 'delete':
-		args = s.split(' ')
+	elif args[0] == 'delete':
 		if len(args) != 3:
 			logs.error('delete usage: delete [filename] [id]')
 			continue
 		delete_subtitle(args[1], args[2].split(','))
-	elif s[:6] == 'delete_time':
+	elif args[0] == 'delete_time':
 		args = s.split(' ')
-		if len(args) != 3:
-			logs.error('delete usage: delete [filename] [id]')
+		if len(args) != 4:
+			logs.error('delete_time usage: delete [filename] [timestamp1] [timestamp2]')
 			continue
-		delete_subtitle(args[1], args[2])
-	elif s != '' and s in ['quit', 'exit', 'q']:
+		ids_to_remove = get_timestamp_ids(args[1], args[2], args[3])
+		delete_subtitle(args[1], ids_to_remove)
+	elif s != '' and args[0] in ['quit', 'exit', 'q']:
 		break
 	elif s == '':
 		continue

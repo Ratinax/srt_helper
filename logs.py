@@ -44,6 +44,9 @@ def help(path: str = ""):
 		print('you may also just hit Enter if it\'s the first to be entered, it would automatically put a good timestamp')
 	print()
 
+def successfully_deleted(amount):
+	print(f'\n{GREEN}Successfully deleted {amount} items !{RESET}\n')
+
 def successfully_added(subtitle):
 	print(f'\n{str(subtitle)}{GREEN}Successfully added !{RESET}\n')
 
