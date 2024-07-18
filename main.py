@@ -10,6 +10,9 @@ from delete_ids import delete_subtitle, get_timestamp_ids
 from add_copy_shell import add_filename_copy
 
 logs.clear()
+print('Welcome in srt helper, a tool to help you build srt files')
+print('If you want some help just type help')
+print()
 
 while True:
 	s, skip = get_input('srt_helper$ ', lower=True)

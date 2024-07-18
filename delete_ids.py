@@ -4,7 +4,7 @@ from utils import to_good_timestamp_format, load_subtitiles
 from times import get_time
 from Subtitle import Subtitle
 
-def delete_subtitle(filename: str, ids: str | list):
+def delete_subtitle(filename: str, ids: list):
 	if not os.path.exists(filename) or os.path.isdir(filename):
 		logs.error('You should enter a valid filename')
 		return

@@ -53,10 +53,14 @@ def get_input(message, help_type: str = "", lower = False, disable_checker: bool
 	s = s.strip()
 	skip = False
 	if not disable_checker:
-		if s == 'help':
-			logs.help(help_type)
+		args = s.split(' ')
+		if args[0] == 'help':
+			if len(args) > 1:
+				logs.help_command(args[1])
+			else:
+				logs.help(help_type)
 			skip = True
-		if s == 'clear':
+		if args[0] == 'clear':
 			logs.clear()
 			skip = True
 	if lower:
@@ -64,6 +68,7 @@ def get_input(message, help_type: str = "", lower = False, disable_checker: bool
 	return s, skip
 
 def to_good_timestamp_format(timestamp: str):
+	timestamp = timestamp.replace('.', ',')
 	# add microseconds
 	sp = timestamp.split(',')
 	if len(sp) == 1:
@@ -85,5 +90,4 @@ def to_good_timestamp_format(timestamp: str):
 		if sp[i] == '':
 			sp[i] = '00'
 		timestamp = sp[i] + ':' + timestamp
-
 	return timestamp

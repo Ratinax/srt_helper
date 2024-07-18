@@ -20,4 +20,4 @@ def add_filename_copy(filename: str, filename_copy: str):
 	with open(filename_copy, 'w') as f_out:
 		for subtitle in subtitles:
 			f_out.write(str(subtitle))
-	logs.successfully_added(filename, filename_copy, len(subtitles))
+	logs.successfully_copied(filename, filename_copy, len(subtitles))

@@ -5,6 +5,7 @@ from Subtitle import Subtitle
 from datetime import time, timedelta
 from times import add_time, get_time
 from typing import Tuple
+from delete_ids import delete_subtitle
 
 def get_max_id(subtitles: list):
 	sub = get_pre_sub(subtitles)
@@ -30,12 +31,13 @@ def get_timestamps_duration(subtitles: list, id: int = -1):
 			s = None
 			continue
 		try:
+			s = s.replace(',', '.')
 			duration = float(s)
 		except:
 			s = None
 			logs.error('wrong duration format, enter help for more infos')
 	timestamp = get_pre_sub_timestamp(subtitles, id)
-	return timestamp, add_time(timestamp, timedelta(seconds=duration))
+	return [timestamp, add_time(timestamp, timedelta(seconds=duration))]
 
 def get_timestamps_timestamps(subtitles: list, id: int = -1):
 	timestamps = []
@@ -119,7 +121,7 @@ def add_filename(filename: str):
 	file = open(filename, 'a')
 	while True:
 		# Get timestamps of new subtitle
-		s, skip = get_input("Enter timestamps or duration ? ([0|t]/[1|d]/[q]) : ", 'timestamp_or_duration', lower=True)
+		s, skip = get_input("Enter timestamps or duration ? ([0|t]/[1|d]/q/r) : ", 'timestamp_or_duration', lower=True)
 		if skip: continue
 		if s in '0tT1dD':
 			if s in '0tT':
@@ -127,6 +129,15 @@ def add_filename(filename: str):
 			elif s in '1dD':
 				timestamps = get_timestamps_duration(subtitles)
 			timestamps = get_timestamps_based_partial(subtitles, timestamps)
+		elif s == 'r':
+			if len(subtitles) == 0:
+				logs.error('cannot remove non-existing subtitles')
+				continue
+			sub_removed: Subtitle = subtitles.pop(-1)
+			file.close()
+			delete_subtitle(filename, [str(sub_removed.id)])
+			file = open(filename, 'a')
+			continue
 		elif s.lower() in ['q', 'quit', 'exit']:
 			file.close()
 			return
